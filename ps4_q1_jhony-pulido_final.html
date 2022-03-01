@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+    <meta charset="utf-8">
+    <!-- set styles on the top -->
+    <style>
+        /* body { min-height: 100vh; } */
+
+        body{
+            width: 1500px;
+            max-height: 1500px;
+            margin: 0px auto;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            }
+
+        h1{
+            margin-top: 20px;
+            text-align: left;
+            font-size: 40px;
+            height: 50px;
+            }
+
+        h3{
+            height: 20px;
+            width: 400px;
+            text-align: center;
+            font-size: 30px;
+            }
+
+        #container{ /*# is used to refer to ids and . to classes*/
+            position: relative;
+            height: 850px;
+            width: 1200px;
+            }
+
+        #sections{
+            width: 340px;
+            }
+
+        #sections > div{  /*the > means "child of"*/
+            background: white;
+            opacity: .2;
+            margin-bottom: 200px;
+            }
+        
+        #sections > div:last-child{
+            margin-bottom: 30px;
+            }
+        
+        #sections > div.graph-scroll-active{
+            opacity: 1;
+            width: 500px;
+            }
+
+        #graph{
+            margin-left: 40px;
+            width: 600px;
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0px;
+            float: right;
+            }
+
+        svg {
+            background-color: white;
+            }
+
+        #chart-intro-1 {
+            width: 500px;
+            float: left;
+            white-space: nowrap;
+        }
+
+        #chart-intro-2 {
+            width: 500px;
+            float: right;
+            white-space: nowrap;
+        }
+
+        /* .container{
+            float: left;
+        } */
+
+        .filler {
+            white-space: nowrap;
+            width: 1200px;
+            height: 600px;
+        }
+        .source {
+            font-size: 15px;
+            color:white;
+        }
+
+        #scroll-overlay {
+            width: 1200px;
+        }
+
+        .yaxis{
+            font-size: 11px;
+        }
+
+    </style>
+</head>
+
+
+<body> <!--the body will have three sections-->
+    <h1>Obamacare, in Its First Big Test as Safety Net, Is Holding Up So Far</h1>
+<!--     <section class = "filler"> 
+        <p>
+            According to estimations of the US Census, approximately 81.6 million children were living in the US by 2019. The left chart below this text helps to have an idea of how they are distributed among US counties. <br> 
+            From the total amount of children, 13.8 million were living in poverty, which represents close to 17%, making it a problem worth tackling through public policies. A potential approach when designing public policies <br> 
+            might be just to prioritize areas having the larger number of children in need. This is shown by the right chart. However, we could also try to analyze if some places are facing more challenges regarding this issue, <br>
+            as they might be needing more specialized attention. Places might be struggling more if they have a particularly high concentration of child poverty once we take into account population size. If we compare both charts, <br>
+            it is difficult to identify the existence of such places, as the magnitude of child poverty seems to be primarily driven by population size. 
+            
+        </p>
+    </section -->
+   
+
+    <!-- <section id='scrolly-overlay'> -->
+        <!-- Container that will display the first chart-->    
+        <div id="container" class="container-1">   
+            <div id="graph"></div>
+            
+            <div id="sections">
+                <div>
+                    <h3>Insurance coverage in 2009</h3>
+                    Healthcare is a political disputed policy area in the United States (U.S.) characterised by failed attempts of introducing relevant changes. For this reason, the 2010 Patient Protection and Affordable Care Act (ACA), the most comprehensive health reform since 1965, stands out as a unique case of success. <br>
+                    <br>
+                    Before its enacting, coverage and costs were healthcare's main problems. In 2008, there were 46 million uninsured Americans, the highest level in more than 30 years. Thus, a massive amount of Americans were at risk of not being able to cover unforeseen health-related events. <br> 
+                    <br>
+                    During those years, private health expenditures had been growing uninterruptedly, leading to rises in health insurance average prices of 114% and 119% for single and family coverage, respectively, between 1998 and 2008 according to The Kaiser Family Foundation. Simultaneously, average personal income had only increased by 48% during the same period according to the U.S. Bureau of Economic Analysis. This situation endangered healthcare affordability and was pushing more people out of the insurance system. <br>
+                    <br>
+                    As we can see in the chart, the working poor who among those most endangered, since their income and age left them ineligible for public insurance coverage and were also unable to access insurance through their places of employment. These people could only purchase insurance plans from private companies (commonly more expensive) and were exposed to rejections due to pre-existing conditions. For these reasons, a relevant share remained uninsured
+                </div>
+
+            </div>
+        </div>
+    <!-- </section> -->
+
+<!-- Container that will display the second chart--> 
+<div id="container" class="container-2">   
+    <div id="graph"></div>
+    
+    <div id="sections">
+        <div>
+            <h3>Insurance coverage in 2020</h3>
+            We can see that after Obamacare was enacted, the coverage situation changed drastically. A great share of those "working poor" who were previously uninsured were absorbed by the government programs, cutting by more than half the share of uninsured people  
+            <br>
+            <br>
+            Moreover, levels of insurance remain high despite the rise of Covid-19, which generated a negative income shock to many American households. Thus, the pandemic has showed that Obamacare has functioned adequately as a safety net.
+        </div>
+
+       <!--  <div>
+            Keep talking about NY counties
+        </div> -->
+
+    </div>
+</div>
+
+
+  
+
+</body>
+
+<!-- add your script blocks at the end -->
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<script src="https://unpkg.com/enter-view@1.0.0/enter-view.min.js"></script> <!--loading Enter View library-->
+<script src="graph-scroll.js"></script> 
+<!-- we're using d3 version 6 (the latest version) for all out work -->
+<script src="https://unpkg.com/topojson@3"></script>
+
+
+<script>
+    //------------------------1. PREPARATION------------------------//
+            //-----------------------------SVG------------------------------//
+            // Define width and height:
+            var oldWidth = 0
+            function render(){
+            if (oldWidth == innerWidth) return
+            oldWidth = innerWidth
+
+            var width = height = d3.select('#graph').node().offsetWidth
+            var r = 40
+
+
+            if (innerWidth <= 925){
+                width = innerWidth
+                height = innerHeight*.7
+            }
+            
+            /* let width = 500;
+            let height = 550; */
+
+            // Appending an svg to every chart:
+/*             let svg_intro2 = d3.select(".filler #chart-intro-1").html("").append("svg")
+                .attr("width",500)
+                .attr("height",height)
+            
+            let svg_intro1 = d3.select(".filler #chart-intro-2").html("").append("svg")
+                .attr("width",500)
+                .attr("height",height) */
+            
+            let svg2 = d3.select(".container-1 #graph").html("").append("svg")
+                .attr("width",width)
+                .attr("height",height)
+
+            let svg3 = d3.select(".container-2 #graph").html("").append("svg")
+                .attr("width",width)
+                .attr("height",height)
+
+            //Define margins
+            let margin = {top: 30, right: 0, bottom: 80, left: 30};
+
+            //-----------------------------DATA------------------------------//
+            d3.csv("healthcare-disposable-inc.csv").then(function (data){  //load data
+            console.log(data) //make sure the data was correctly uploaded
+        
+            // Specify relevant variables/* :
+            data.forEach(function(row){
+                row.Percentile = +row.Percentile //x-axis: income percentile
+                row.Medicaid = +row.Medicaid //y-axis group 1: % insured by Medicaid
+                row.Medicare = +row.Medicare //y-axis group 2: % insured by Medicare
+                row.Military = +row.Military //y-axis group 3: % insured by the military
+                row.Other = +row.Other //y-axis group 4: % insured by other sources
+                row['Subsidized Exchange'] = +row['Subsidized Exchange']  //y-axis group 5: % insured by subsidized exchange
+                row.Uninsured = +row.Uninsured //y-axis group 6: % uninsured
+                row['Direct Purchase'] = +row['Direct Purchase'] //y-axis group 7: % insured by direct purchase
+                row.Employer = +row.Employer //y-axis group 8: % insured by their employers
+                row.CHIP = +row.CHIP //y-axis group 9: % insured by CHIP
+            })
+
+            // Filter to keep only year 2020
+            let d2020 = data.filter(d => d.year ==2020)
+            console.log(d2020)
+
+            // Filter to keep only year 2020
+            let d2009 = data.filter(d => d.year ==2009)
+            console.log(d2009)
+            //Define the columns that will be stacked in the order that we prefer
+            let cols = [
+                "Medicaid",
+                "Medicare",
+                "Medicare+Medicaid",
+                "Employer",
+                "Uninsured",
+                "Direct Purchase",
+                "Subsidized Exchange",
+                "CHIP",
+                "Military",
+                "Other"
+            ]
+            
+            //In order to assign a different color to each category, we first define colors
+            let colors = [
+                "#f44336", // "Medicaid",
+                "#FF9800", // "Medicare",
+                "#FDD835", // "Medicare+Medicaid",
+                "#FFF8E1", // "Employer",
+                "#26A68A",  // "Uninsured"
+                "#4DD0E1", // "Direct Purchase",
+                "#F06292", // "Subsidized Exchange",
+                "#5C6BC0", // "CHIP",
+                "#90A4AE", // "Military",
+                "#E0E0E0", // "Other",
+            ]
+
+            //Generate the stacked data
+            let series2020 = d3.stack()
+            .keys(cols) //the keys (unique ID for each group)
+            (d2020); //the input data
+        
+            console.log(series2020)
+            console.log(series2020[1])
+
+            let series2009 = d3.stack()
+            .keys(cols) //the keys (unique ID for each group)
+            (d2009); //the input data
+        
+            console.log(series2009)
+
+            //Data currently in use:
+            let series = "series2020"
+
+            //Filtered database to use for the legend
+            let data_legend = series2020.filter(d => d.key =="Medicare+Medicaid"||
+                                                     d.key =="Subsidized Exchange"||
+                                                     d.key == "Military"||
+                                                     d.key == "CHIP"||
+                                                     d.key == "Other")
+            console.log(data_legend)
+
+            let colors_legend = [
+                "#FDD835", // "Medicare+Medicaid",
+                "#F06292", // "Subsidized Exchange",
+                "#90A4AE", // "Military",
+                "#5C6BC0", // "CHIP",
+                "#E0E0E0", // "Other",
+            ]
+
+            let cols_legend = [
+                "Medicare and Medicaid",
+                "Subsidized Exchange",
+                "Military",
+                "CHIP",
+                "Other",
+            ]
+
+        //----------------------------SCALES & AXES--------------------//
+            //X-axis:
+            let x = d3.scaleLinear() //re-scaling to pixels:
+                .domain(d3.extent(data.map(function (d){
+                    return (d.Percentile)
+                })))
+                .range([margin.left, width - margin.right])
+            
+            let xAxisSettings = d3.axisBottom(x) //defining settings
+                .tickValues([5,10,20,30,40,50,60,70,80,90,95])
+                .tickSize(10)
+                .tickFormat(d3.format(".0f"))      
+
+            //Y-axis:
+            let y = d3.scaleLinear()
+                .domain([0,1])
+                .range([height - margin.bottom, margin.top])
+
+            let yAxisSettings = d3.axisRight(y)
+                .tickValues([.2,.4,.6,.8])
+                .tickSize(5)
+                .tickFormat(d3.format(".0%"))
+
+        //Color function
+        let chart_colors = d3.scaleOrdinal()
+            .domain(cols)  //domain: the groups
+            .range(colors) //range: the colors
+        
+        //----------------------------AREA--------------------//
+        //Define the area function
+        let area = d3.area()
+            .x(function(d){
+                return x(d.data.Percentile)  //x-axis
+            })
+            //Since we are using stacked data, the beginning and end of every group is determined by the stacked data
+            .y0(function(d){
+                return y(d[0])
+            })  
+            .y1(function(d){
+                return y(d[1])
+            })
+  
+                //------------------------2. DISPLAY------------------------//
+                //Defining the graph scroll function for the first chart:
+                let gs = d3.graphScroll()
+                    .container(d3.select(".container-1"))
+                    .graph(d3.selectAll(".container-1 #graph"))
+                    .eventId("uniqueId1")
+                    .sections(d3.selectAll(".container-1 #sections > div"))
+                    //.offset()
+                    .on("active",function(i){
+                        console.log(i + 'th section of chart 1 is active')
+                    
+                    let xAxisTicks = svg2.append("g") //appending the x-axis to the SVG
+                    .attr("class","xaxis")
+                    .call(xAxisSettings)
+                    .call(g => g.selectAll(".domain").remove())
+                    .attr("transform", `translate(0,${height - margin.bottom})`)  
+
+                    //Y-axis:
+                    let yAxisTicks = svg2.append("g")
+                        .attr("class","yaxis")
+                        .call(yAxisSettings)
+                        .call(g => g.selectAll(".domain").remove())
+
+                    //Append the chart:
+                    let area_groups = svg2.append("g")
+                        .selectAll("path")  //since the paths already exist, d3 will append the new data to them
+                        .data(series2009, function(d){
+                            return d.key
+                        }) 
+                        .join("path")
+                        .attr("class", function(d){
+                            return d.key
+                        })
+                        .attr("d", area)
+                        .attr("fill", function(d){
+                            return chart_colors(d.key)
+                        })
+                    //Append labels for some categories:
+                        svg2.append("text")
+                            .attr("class","labels") //setting a class allows changing elements to all like font size in the CSS section
+                            .attr("x",60)  //set manually the location of labels. The chart is 900 px width x 500 height
+                            .attr("y", 450)
+                            .text("Medicaid")
+                        
+                        svg2.append("text")
+                            .attr("class","labels")
+                            .attr("x",60)  
+                            .attr("y", 350)
+                            .text("Medicare")
+
+                        svg2.append("text")
+                            .attr("class","labels")
+                            .attr("x",70)
+                            .attr("y", 250)
+                            .text("Employer")
+
+                        svg2.append("text")
+                            .attr("class","labels-uninsured")
+                            .attr("x",70)
+                            .attr("y", 115)
+                            .text("Uninsured")
+                            .attr("color","blue")
+
+                        svg2.append("text")
+                            .attr("class","labels")
+                            .attr("x",300)
+                            .attr("y",75)
+                            .text("Direct Purchase")
+                            .style("font-size", 15)
+
+                        //Append additional annotation for x-axis labels
+                        svg2.append("text")
+                            .attr("class","axis-label")
+                            .attr("x", 300) //put it in the middle
+                            .attr("y", 570)
+                            .text("INCOME PERCENTILE")
+                            .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                            .attr("font-size", 13)
+
+                        svg2.append("text")
+                            .attr("class","axis-label")
+                            .attr("x", 500) //put it in the middle
+                            .attr("y", 570)
+                            .text("HIGHER INCOME")
+                            .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                            .attr("font-size", 13)
+                            
+                        svg2.append("text")
+                            .attr("class","axis-label")
+                            .attr("x", 100) //put it in the middle
+                            .attr("y", 570)
+                            .text("LOWER INCOME")
+                            .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                            .attr("font-size", 13)
+                        
+                            let dataL = 0;
+                            let offset = 10;
+                            let begin_h = -422 //beginning of the legend x-axis
+                            let begin_v = 10  //beginning of the legend y-axis
+
+                            let legend = svg2.append("g")
+                                .attr("class", "legend")
+                                .attr("x", width - 500)
+                                .attr("y", height - 500)
+                                .attr("height", height - 50)
+                                .attr("width", 900)
+                                .selectAll('g').data(data_legend)
+                                .enter()
+                                .append('g')
+                                .attr("transform", function (d, i) {
+                                        console.log(i)
+                                        if (i === 0) {
+                                            return "translate(" + (begin_h) +"," + (begin_v) + ")"
+                                            } else {
+                                                if (i === 1) {
+                                                console.log(d.key.length)
+                                                var newdataH = begin_h + 160
+                                                begin_h = newdataH
+                                                var newdataV = begin_v + -25
+                                                begin_v = newdataV
+                                                return "translate(" + (newdataH) + "," + (newdataV) + ")"    
+                                            } else {
+                                                if (i === 2) {
+                                                    var newdataH = begin_h + 150
+                                                    begin_h = newdataH
+                                                    var newdataV = begin_v + -25
+                                                    begin_v = newdataV
+                                                    return "translate(" + (newdataH) + "," + (newdataV) + ")"  
+                                                } else {
+                                                    if (i===3) {
+                                                        var newdataH = begin_h + 65
+                                                        begin_h = newdataH
+                                                        var newdataV = begin_v + -25
+                                                        begin_v = newdataV
+                                                        return "translate(" + (newdataH) + "," + (newdataV) + ")"  
+                                                    } else {
+                                                        var newdataH = begin_h + 55
+                                                        begin_h = newdataH
+                                                        var newdataV = begin_v + -25
+                                                        begin_v = newdataV
+                                                        return "translate(" + (newdataH) +  "," + (newdataV) + ")"
+                                                    }   
+                                                }
+                                            }
+                                        } 
+                                    })
+                                .each(function(d, i) {
+                                    let g = d3.select(this);
+                                    g.append("rect")
+                                    .attr("x", width - 65)
+                                    .attr("y", i*25)
+                                    .attr("width", 15)
+                                    .attr("height", 15)
+                                    .style("fill", colors_legend[(i)]);
+
+                                    g.append("text")
+                                    .attr("x", width - 48)
+                                    .attr("y", i * 25 + 12)
+                                    .attr("height",30)
+                                    .attr("width",100)
+                                    .attr("font-weight", "normal")
+                                    .style("opacity", 0.8)
+                                    .text(cols_legend[i])
+                                    .style("font-size",13)
+                                    .style("font-family", "Arial");
+
+                                })         
+                        })
+
+         
+
+
+                    //Graph scroll for the second chart:
+                    let gs2 = d3.graphScroll()
+                        .container(d3.select(".container-2"))
+                        .graph(d3.selectAll(".container-2 #graph"))
+                        .eventId("uniqueId2")
+                        .sections(d3.selectAll(".container-2 #sections > div"))
+                        //.offset()
+                        .on("active",function(i){
+                            console.log(i + 'th section of chart 2 is active')
+                            let xAxisTicks = svg3.append("g") //appending the x-axis to the SVG
+                            .attr("class","xaxis")
+                            .call(xAxisSettings)
+                            .call(g => g.selectAll(".domain").remove())
+                            .attr("transform", `translate(0,${height - margin.bottom})`)  
+
+                            //Y-axis:
+                            let yAxisTicks = svg3.append("g")
+                                .attr("class","yaxis")
+                                .call(yAxisSettings)
+                                .call(g => g.selectAll(".domain").remove())
+
+                            //Append the chart:
+                            let area_groups = svg3.append("g")
+                                .selectAll("path")  //since the paths already exist, d3 will append the new data to them
+                                .data(series2020, function(d){
+                                    return d.key
+                                }) 
+                                .join("path")
+                                .attr("class", function(d){
+                                    return d.key
+                                })
+                                .attr("d", area)
+                                .attr("fill", function(d){
+                                    return chart_colors(d.key)
+                                })
+                            //Append labels for some categories:
+                                svg3.append("text")
+                                    .attr("class","labels") //setting a class allows changing elements to all like font size in the CSS section
+                                    .attr("x",60)  //set manually the location of labels. The chart is 900 px width x 500 height
+                                    .attr("y", 450)
+                                    .text("Medicaid")
+                                
+                                svg3.append("text")
+                                    .attr("class","labels")
+                                    .attr("x",60)  
+                                    .attr("y", 330)
+                                    .text("Medicare")
+
+                                svg3.append("text")
+                                    .attr("class","labels")
+                                    .attr("x",70)
+                                    .attr("y", 210)
+                                    .text("Employer")
+
+                                svg3.append("text")
+                                    .attr("class","labels-uninsured")
+                                    .attr("x",70)
+                                    .attr("y", 115)
+                                    .text("Uninsured")
+                                    .attr("color","blue")
+
+                                svg3.append("text")
+                                    .attr("class","labels")
+                                    .attr("x",300)
+                                    .attr("y",70)
+                                    .text("Direct Purchase")
+                                    .style("font-size", 15)
+
+                                    svg3.append("text")
+                                        .attr("class","axis-label")
+                                        .attr("x", 300) //put it in the middle
+                                        .attr("y", 570)
+                                        .text("INCOME PERCENTILE")
+                                        .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                                        .attr("font-size", 13)
+
+                                    svg3.append("text")
+                                        .attr("class","axis-label")
+                                        .attr("x", 500) //put it in the middle
+                                        .attr("y", 570)
+                                        .text("HIGHER INCOME")
+                                        .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                                        .attr("font-size", 13)
+                                        
+                                    svg3.append("text")
+                                        .attr("class","axis-label")
+                                        .attr("x", 100) //put it in the middle
+                                        .attr("y", 570)
+                                        .text("LOWER INCOME")
+                                        .attr("text-anchor", "middle") //ensures that it is in the middle of the SVG
+                                        .attr("font-size", 13)
+
+                                    let dataL = 0;
+                                    let offset = 10;
+                                    let begin_h = -422 //beginning of the legend x-axis
+                                    let begin_v = 10  //beginning of the legend y-axis
+
+                                    let legend = svg3.append("g")
+                                        .attr("class", "legend")
+                                        .attr("x", width - 500)
+                                        .attr("y", height - 500)
+                                        .attr("height", height - 50)
+                                        .attr("width", 900)
+                                        .selectAll('g').data(data_legend)
+                                        .enter()
+                                        .append('g')
+                                        .attr("transform", function (d, i) {
+                                                console.log(i)
+                                                if (i === 0) {
+                                                    return "translate(" + (begin_h) +"," + (begin_v) + ")"
+                                                    } else {
+                                                        if (i === 1) {
+                                                        console.log(d.key.length)
+                                                        var newdataH = begin_h + 160
+                                                        begin_h = newdataH
+                                                        var newdataV = begin_v + -25
+                                                        begin_v = newdataV
+                                                        return "translate(" + (newdataH) + "," + (newdataV) + ")"    
+                                                    } else {
+                                                        if (i === 2) {
+                                                            var newdataH = begin_h + 150
+                                                            begin_h = newdataH
+                                                            var newdataV = begin_v + -25
+                                                            begin_v = newdataV
+                                                            return "translate(" + (newdataH) + "," + (newdataV) + ")"  
+                                                        } else {
+                                                            if (i===3) {
+                                                                var newdataH = begin_h + 65
+                                                                begin_h = newdataH
+                                                                var newdataV = begin_v + -25
+                                                                begin_v = newdataV
+                                                                return "translate(" + (newdataH) + "," + (newdataV) + ")"  
+                                                            } else {
+                                                                var newdataH = begin_h + 55
+                                                                begin_h = newdataH
+                                                                var newdataV = begin_v + -25
+                                                                begin_v = newdataV
+                                                                return "translate(" + (newdataH) +  "," + (newdataV) + ")"
+                                                            }   
+                                                        }
+                                                    }
+                                                } 
+                                            })
+                                        .each(function(d, i) {
+                                            let g = d3.select(this);
+                                            g.append("rect")
+                                            .attr("x", width - 65)
+                                            .attr("y", i*25)
+                                            .attr("width", 15)
+                                            .attr("height", 15)
+                                            .style("fill", colors_legend[(i)]);
+
+                                            g.append("text")
+                                            .attr("x", width - 48)
+                                            .attr("y", i * 25 + 12)
+                                            .attr("height",30)
+                                            .attr("width",100)
+                                            .attr("font-weight", "normal")
+                                            .style("opacity", 0.8)
+                                            .text(cols_legend[i])
+                                            .style("font-size",13)
+                                            .style("font-family", "Arial");
+                        }) 
+                    })
+                })
+            }  
+            
+        render()
+        d3.select(window).on('resize', render)
+
+</script>
